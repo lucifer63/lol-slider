@@ -1,13 +1,13 @@
 ;(function() {
 	$.fn.createSlider = function (opt, return_object) {
-		// preparations
-		if (Math.sign !== 'function') {
+
+		if (typeof Math.sign !== 'function') {
 			Math.sign = function(x) {
 			    return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
 			}
 		}
 
-		if (jQuery.support.cssTransitions !== 'boolean') {
+		if (typeof jQuery.support.cssTransitions !== 'boolean') {
 			jQuery.support.cssTransitions = (function() {
 			    var b = document.body || document.documentElement,
 			        s = b.style,
@@ -29,13 +29,15 @@
 
 		// slider construction beginning
 	    var options = $.extend(true, {
-	    	touch_control: true,
+	    	touch_control: false,
 	    	repeat_slides: true,
 	    	autoplay: false,
 	    	autoplay_delay: 5,
 	    	change_thresold: 10,
 	    	control_overlay_selector: 'slider-control-overlay'
 	    }, opt);
+
+	    console.log(options);
 
 	    // change_thresold - minimal distance in percentage of the slider width that user should move slide at to change it
 		if (typeof options.change_thresold !== 'number' && options.change_thresold < 0 || options.change_thresold > 100) {
@@ -203,59 +205,44 @@
 		        changeTo(current+(e.keyCode-38));
 		      }
 		    })*/
+			if (!options.touch_control) {
+			    control_overlay.on({
+			    	'mousedown': jQuery.support.cssTransitions ?
+					function(e) {
+			    		e.preventDefault();
+			    		base.addClass('dragged');
+				    	drag_start_position = e.pageX - slider_offset_left;
 
-		    control_overlay.on({
-		    	'mousedown': jQuery.support.cssTransitions ?
-				function(e) {
-		    		e.preventDefault();
-		    		base.addClass('dragged');
-			    	drag_start_position = e.pageX - slider_offset_left;
+				    	if (autoplay_interval_id) {
+				    		clearInterval(autoplay_interval_id);
+				    		autoplay_interval_id = 0;
+				    	}
+				    } :
+				    function(e) {
+			    		e.preventDefault();
+			    		base.addClass('dragged');
+				    	drag_start_position = e.pageX - slider_offset_left;
+				    	list.stop(true, false);
 
-			    	if (autoplay_interval_id) {
-			    		clearInterval(autoplay_interval_id);
-			    		autoplay_interval_id = 0;
-			    	}
-			    } :
-			    function(e) {
-		    		e.preventDefault();
-		    		base.addClass('dragged');
-			    	drag_start_position = e.pageX - slider_offset_left;
-			    	list.stop(true, false);
+				    	if (autoplay_interval_id) {
+				    		clearInterval(autoplay_interval_id);
+				    		autoplay_interval_id = 0;
+				    	}
+				    },
+				    'mousemove': function(e) {
+				    	if (drag_start_position) {
+				    		delta = e.pageX - drag_start_position - slider_offset_left;
+				    		// if first or last - restrict moving past them
+				    		if ((current === 0 && delta > 0) ||
+				    			(current === slides_arr.length - 1 && delta < 0)) {
+				    			return;
+				    		}
 
-			    	if (autoplay_interval_id) {
-			    		clearInterval(autoplay_interval_id);
-			    		autoplay_interval_id = 0;
-			    	}
-			    },
-			    'mousemove': function(e) {
-			    	if (drag_start_position) {
-			    		delta = e.pageX - drag_start_position - slider_offset_left;
-			    		// if first or last - restrict moving past them
-			    		if ((current === 0 && delta > 0) ||
-			    			(current === slides_arr.length - 1 && delta < 0)) {
-			    			return;
-			    		}
-
-			    		relative_position = delta * (100/width);
-			    		list.css('left',  (-current*100 + relative_position) + '%');
-				    }
-			    },
-			    'mouseup': function(e) {
-			    	if ( Math.abs(relative_position) > thresold ) {
-			    		changeTo( current - sign(relative_position) );
-			    	} else {
-			    		animate();
-			    	}
-			    	drag_start_position = 0;
-			    	relative_position = 0;
-			    	base.removeClass('dragged');
-
-			    	if (options.autoplay) {
-			    		setAutoplay();
-			    	}
-			    }, 
-			    'mouseleave': function(e) {
-			    	if (drag_start_position) {
+				    		relative_position = delta * (100/width);
+				    		list.css('left',  (-current*100 + relative_position) + '%');
+					    }
+				    },
+				    'mouseup': function(e) {
 				    	if ( Math.abs(relative_position) > thresold ) {
 				    		changeTo( current - sign(relative_position) );
 				    	} else {
@@ -264,16 +251,31 @@
 				    	drag_start_position = 0;
 				    	relative_position = 0;
 				    	base.removeClass('dragged');
-				    	
+
 				    	if (options.autoplay) {
 				    		setAutoplay();
 				    	}
+				    }, 
+				    'mouseleave': function(e) {
+				    	if (drag_start_position) {
+					    	if ( Math.abs(relative_position) > thresold ) {
+					    		changeTo( current - sign(relative_position) );
+					    	} else {
+					    		animate();
+					    	}
+					    	drag_start_position = 0;
+					    	relative_position = 0;
+					    	base.removeClass('dragged');
+					    	
+					    	if (options.autoplay) {
+					    		setAutoplay();
+					    	}
+					    }
 				    }
-			    }
-		    });
+			    });
+			} else {
 
-
-		    if (options.touch_control) {
+			/* if touch */
 
 				/*if (navigator.msMaxTouchPoints) {
 
@@ -345,8 +347,6 @@
 		    // DRAFT!!! Change to some adequate solution
 		    // console.log(map_items.filter('.active'));
 
-
-
 			sliderResizeHandler = function() {
 			    var pre = base.outerWidth(), after = 0;
 				slides.hide();
@@ -369,7 +369,6 @@
 			} else {
 				changeTo(0);
 			}
-
 
 			if (options.autoplay) {
 				setAutoplay = function() {
