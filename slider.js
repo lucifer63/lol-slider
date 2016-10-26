@@ -37,8 +37,6 @@
 	    	control_overlay_selector: 'slider-control-overlay'
 	    }, opt);
 
-	    console.log(options);
-
 	    // change_thresold - minimal distance in percentage of the slider width that user should move slide at to change it
 		if (typeof options.change_thresold !== 'number' && options.change_thresold < 0 || options.change_thresold > 100) {
 			console.log('Invalid \'change_thresold\' value: it is \'' + options.change_thresold + '\', but expected to be a number greater than 0 and lesser than 100. Slider can be created with default thresold value - 10% !');
