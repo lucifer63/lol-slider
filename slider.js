@@ -6,7 +6,7 @@
 			    return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
 			}
 		}
-		// lel
+
 		if (typeof jQuery.support.cssTransitions !== 'boolean') {
 			jQuery.support.cssTransitions = (function() {
 			    var b = document.body || document.documentElement,
