@@ -1,6 +1,6 @@
 ;(function() {
 	$.fn.createSlider = function (opt, return_object) {
-
+		// hello !
 		if (typeof Math.sign !== 'function') {
 			Math.sign = function(x) {
 			    return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
